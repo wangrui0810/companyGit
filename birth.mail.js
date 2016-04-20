@@ -1,12 +1,8 @@
 #!/usr/bin/env node
 var pg = require('pg');
 var shell = require('shelljs');
-var sendMail = require('./sendMail.js')
-
-/*
-my $SCRIPT=`basename $0`;
-chomp $SCRIPT;
-*/
+var sendMail = require('./sendMail.js');
+var _ = require('underscore')
 
 var tmpmonth = shell.exec('date +%m').output;
 tmpmonth = tmpmonth.substring(0, tmpmonth.length -1);
@@ -20,7 +16,7 @@ nextmonth = nextmonth.substring(0, nextmonth.length -1);
 
 
 
-var conString = "postgres://postgres:xxxxx@192.168.150.27/custom_server";
+var conString = "postgres://postgres:xxxxx@xxxxxx/custom_server";
 
 
 var argv1 = nextmonth + ".0";
@@ -40,23 +36,18 @@ pg.connect(conString, function(err, client, done) {
 						console.log(err);
 						throw err;
 						}
-						for(var i in result.rows)
-							allBirthday += JSON.stringify(result.rows[i]) + "<br/>"  ;
-
-
+						var compiled = _.template("<%=custom_name%>\t<%=birthday%>\t<%=telnum%>\t<%=email%>");
+						for(var i in result.rows) {
+							var a = compiled({
+								custom_name: result.rows[i].custom_name,
+								birthday: result.rows[i].birthday,
+								telnum: result.rows[i].telnum,
+								email: result.rows[i].email
+							});
+							allBirthday += a + "<br/>";
+						}
 						console.log(allBirthday);
 						sendMail.timedSend(allBirthday);
-
-						/*
-						if(allBirthday)
-						{
-							var mycmd = '/home/wr/workspace/nodejs/hello.js ' + allBirthday;
-							shell.exec(mycmd);
-							console.log("sending mail.....");
-						}
-						*/
-
-
 					});
 });
  
